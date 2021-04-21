@@ -10,7 +10,11 @@ fi
 # prepare certificate
 pem_file=`date +"%s"`
 openssl x509 -in $cer -inform der -out /tmp/$pem_file
-		
+
+if [[ ! -f /tmp/$pem_file ]]; then
+	openssl x509 -in $cer -out /tmp/$pem_file
+fi
+
 # using default adb  
 if [[ ! $ADB ]]; then ADB=adb; fi
 
@@ -22,7 +26,8 @@ if [[ ! `$CMD ls /data/local/tmp/cacerts/` ]]; then
 	$CMD cp -r /system/etc/security/cacerts/ /data/local/tmp/	
 fi
 
-cer_name=`openssl x509 -in $cer -inform der -subject_hash_old -noout`
+cer_name=`openssl x509 -in /tmp/$pem_file -subject_hash_old -noout`
+echo "$cer_name"
 
 echo send certificate to remote device
 $ADB push /tmp/$pem_file /data/local/tmp/cacerts/$cer_name.0
